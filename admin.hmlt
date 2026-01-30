@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Panel • Phone Guard</title>
+  <style>
+    :root{
+      --bg:#050b0a; --line:rgba(0,255,160,.14);
+      --neon:#00ffa0; --neon2:#00d4ff; --text:#dffdf3; --muted:#86c9b5;
+      --shadow:0 0 40px rgba(0,255,160,.10), inset 0 0 60px rgba(0,40,20,.35);
+      --danger:#ff4d4d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New", monospace;
+      background:
+        radial-gradient(900px 600px at 20% -10%, rgba(0,255,160,.18), transparent 55%),
+        radial-gradient(700px 500px at 120% 20%, rgba(0,212,255,.16), transparent 55%),
+        radial-gradient(700px 500px at 50% 120%, rgba(0,255,160,.10), transparent 55%),
+        var(--bg);
+      padding:18px 14px 40px;
+    }
+    .wrap{max-width:820px;margin:0 auto}
+    .card{
+      border:1px solid var(--line); border-radius:22px;
+      background:rgba(0,0,0,.22); box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .brand{letter-spacing:.22em; font-weight:900; text-align:center; color:var(--neon); font-size:22px}
+    .sub{margin-top:6px; text-align:center; color:var(--neon2); font-size:12px; opacity:.9}
+    .topbar{
+      margin-top:14px;
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      padding:12px;
+      border:1px solid rgba(0,255,160,.16);
+      border-radius:18px;
+      background:rgba(0,0,0,.18);
+    }
+    .pill{
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(0,255,160,.20);
+      color:var(--text);
+      background:rgba(0,0,0,.18);
+      display:flex; gap:10px; align-items:center;
+    }
+    .btn{
+      border:0; border-radius:14px;
+      padding:10px 12px;
+      background:linear-gradient(90deg, rgba(0,255,160,.95), rgba(0,212,255,.85));
+      font-weight:900; letter-spacing:.08em; cursor:pointer;
+      color:#03100d;
+      white-space:nowrap;
+    }
+    .btn2{
+      border:1px solid rgba(0,255,160,.25);
+      background:transparent;
+      color:var(--neon);
+    }
+    .btnDanger{
+      background:transparent;
+      border:1px solid rgba(255,77,77,.55);
+      color:#ffd7d7;
+    }
+    .grid{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    .section{
+      border:1px solid rgba(0,255,160,.16);
+      border-radius:18px;
+      background:rgba(0,0,0,.18);
+      padding:14px;
+    }
+    h3{
+      margin:0 0 10px;
+      color:var(--neon);
+      letter-spacing:.08em;
+      font-size:14px;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .field{
+      flex:1;
+      min-width:180px;
+      border:1px solid rgba(0,255,160,.16);
+      border-radius:14px;
+      padding:10px 12px;
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+    }
+    .hint{color:var(--muted); font-size:12px; margin-top:8px}
+    .list{display:grid; gap:10px; margin-top:10px}
+    .item{
+      border:1px solid rgba(0,255,160,.16);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(0,0,0,.20);
+    }
+    .itemTop{display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center}
+    .tag{
+      font-size:12px; padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(0,255,160,.24);
+      color:var(--neon);
+    }
+    .tagPending{color:#ffeaa7;border-color:rgba(255,234,167,.35)}
+    .tagApproved{color:#a8ffcf;border-color:rgba(0,255,160,.25)}
+    .tagRejected{color:#ffb3b3;border-color:rgba(255,77,77,.35)}
+    .msg{
+      margin-top:12px;
+      border-radius:16px;
+      border:1px solid rgba(0,255,160,.18);
+      background:rgba(0,0,0,.25);
+      padding:12px;
+      color:var(--text);
+      display:none;
+      white-space:pre-wrap;
+    }
+    .msg.show{display:block}
+    .msg.err{border-color:rgba(255,77,77,.45); color:#ffd7d7}
+    .small{color:var(--muted); font-size:12px}
+    .mono{font-family: inherit}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">PHONE GUARD</div>
+      <div class="sub">Admin Panel • Deposit & Settings</div>
+
+      <div class="topbar">
+        <div class="pill">
+          <span class="small">Admin:</span>
+          <span id="adminEmail" class="mono">Checking...</span>
+        </div>
+        <div class="row">
+          <button id="refreshBtn" class="btn btn2" type="button">Refresh</button>
+          <button id="logoutBtn" class="btn" type="button">Logout</button>
+        </div>
+      </div>
+
+      <!-- DEPOSIT REQUESTS -->
+      <div class="section" style="margin-top:14px">
+        <h3>Pending Deposit Requests</h3>
+        <div class="small">Approve করলে user balance বাড়বে, status = approved হবে।</div>
+        <div id="depositList" class="list"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="section">
+        <h3>Payment Numbers (Settings)</h3>
+        <div class="row">
+          <input id="bkash" class="field" placeholder="bKash number"/>
+          <input id="nagad" class="field" placeholder="Nagad number"/>
+          <input id="rocket" class="field" placeholder="Rocket number"/>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="loadSettingsBtn" class="btn btn2" type="button">Load</button>
+          <button id="saveSettingsBtn" class="btn" type="button">Save</button>
+        </div>
+        <div class="hint">Firestore path: settings/payment</div>
+      </div>
+
+      <div id="msg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- IMPORTANT: type="module" -->
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
