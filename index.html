@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Phone Guard • Admin</title>
+  <style>
+    :root{
+      --bg:#050b0a; --line:rgba(0,255,160,.14);
+      --neon:#00ffa0; --neon2:#00d4ff; --text:#dffdf3; --muted:#86c9b5;
+      --shadow:0 0 40px rgba(0,255,160,.10), inset 0 0 60px rgba(0,40,20,.35);
+      --danger:#ff4d6d; --ok:#00ffa0;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+      background:
+        radial-gradient(900px 600px at 20% -10%, rgba(0,255,160,.18), transparent 55%),
+        radial-gradient(700px 500px at 120% 20%, rgba(0,212,255,.16), transparent 55%),
+        radial-gradient(700px 500px at 50% 120%, rgba(0,255,160,.10), transparent 55%),
+        var(--bg);
+      padding:18px 14px 40px;
+    }
+    .wrap{max-width:980px;margin:0 auto}
+    .card{
+      border:1px solid var(--line); border-radius:22px;
+      background:rgba(0,0,0,.22); box-shadow:var(--shadow);
+      padding:16px; margin-bottom:14px;
+    }
+    .brand{letter-spacing:.22em;font-weight:900;text-align:center;color:var(--neon);font-size:22px}
+    .sub{margin-top:6px;text-align:center;color:var(--neon2);font-size:12px;opacity:.9}
+    .muted{color:var(--muted);font-size:12px;line-height:1.5}
+    .ok{border:1px solid rgba(0,255,160,.25); background:rgba(0,255,160,.06); padding:12px 14px;border-radius:16px; white-space:pre-wrap}
+    .err{border:1px solid rgba(255,77,109,.35); background:rgba(255,77,109,.08); padding:12px 14px;border-radius:16px; white-space:pre-wrap}
+    .hidden{display:none !important}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    input, textarea{
+      width:100%;
+      border:1px solid rgba(0,255,160,.20);
+      border-radius:16px;
+      padding:12px 14px;
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:90px;resize:vertical}
+    .btn{
+      border:0;border-radius:14px;
+      padding:11px 12px;
+      background:linear-gradient(90deg, rgba(0,255,160,.95), rgba(0,212,255,.85));
+      font-weight:900;letter-spacing:.08em;cursor:pointer;color:#03100d;
+      white-space:nowrap;
+    }
+    .btn2{
+      border:1px solid rgba(0,255,160,.25);
+      border-radius:14px;
+      padding:11px 12px;
+      background:transparent;
+      color:var(--neon);
+      font-weight:900;cursor:pointer;
+      white-space:nowrap;
+    }
+    .grid{display:grid;gap:12px}
+    @media(min-width:980px){ .two{grid-template-columns:1fr 1fr} }
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid rgba(0,255,160,.12);font-size:12px; text-align:left}
+    th{color:var(--muted); letter-spacing:.08em}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(0,255,160,.20);color:var(--muted)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="brand">PHONE GUARD</div>
+    <div class="sub">Admin Panel • No Login Screen (Session-based)</div>
+  </div>
+
+  <!-- Gate (not logged in / not admin) -->
+  <div class="card" id="gate">
+    <div class="row">
+      <b style="color:var(--neon);letter-spacing:.12em">ACCESS CHECK</b>
+      <span class="pill" id="gateState">Checking…</span>
+    </div>
+    <div style="height:10px"></div>
+    <div id="gateMsg" class="muted">Please wait…</div>
+    <div style="height:12px"></div>
+    <div class="actions">
+      <a class="btn2" href="https://ghosthackeruk.github.io/phone-guard-user-new/login.html">Open User Login</a>
+      <button class="btn" id="btnSignOut" type="button">Sign out</button>
+    </div>
+    <div class="muted" style="margin-top:10px">
+      ✅ প্রথমবার user site এ login করলেই, admin panel password ছাড়াই open হবে।
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="card hidden" id="dash">
+    <div class="row">
+      <div>
+        <b style="color:var(--neon);letter-spacing:.12em">DASHBOARD</b>
+        <div class="muted" id="adminInfo">Admin: …</div>
+      </div>
+      <div class="actions">
+        <button class="btn2" id="btnRefresh" type="button">Refresh</button>
+        <button class="btn" id="btnLogout" type="button">Logout</button>
+      </div>
+    </div>
+
+    <div style="height:10px"></div>
+    <div id="msgOk" class="ok hidden"></div>
+    <div id="msgErr" class="err hidden"></div>
+
+    <div class="grid two" style="margin-top:12px">
+
+      <!-- Payment numbers -->
+      <div class="card" style="margin:0">
+        <b style="color:var(--neon);letter-spacing:.12em">PAYMENT NUMBERS</b>
+        <div class="muted">Firestore: settings/payment</div>
+        <div style="height:10px"></div>
+        <div class="grid">
+          <input id="bkash" placeholder="bKash number">
+          <input id="nagad" placeholder="Nagad number">
+          <input id="rocket" placeholder="Rocket number">
+          <div class="actions">
+            <button class="btn2" id="btnLoadPay" type="button">Load</button>
+            <button class="btn" id="btnSavePay" type="button">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User balance edit -->
+      <div class="card" style="margin:0">
+        <b style="color:var(--neon);letter-spacing:.12em">USER BALANCE</b>
+        <div class="muted">users/{uid}.balance add / set</div>
+        <div style="height:10px"></div>
+        <div class="grid">
+          <input id="uUid" placeholder="User UID">
+          <input id="uAmt" type="number" placeholder="Amount (e.g. 500)">
+          <div class="actions">
+            <button class="btn2" id="btnCheckBal" type="button">Check</button>
+            <button class="btn" id="btnAddBal" type="button">Add</button>
+            <button class="btn2" id="btnSetBal" type="button">Set</button>
+          </div>
+          <div class="muted" id="balPreview">Balance: -</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- User list -->
+    <div class="card" style="margin-top:12px">
+      <b style="color:var(--neon);letter-spacing:.12em">USER LIST (last 50)</b>
+      <div class="muted">Email + Balance</div>
+      <div style="height:10px; overflow:auto">
+        <table>
+          <thead><tr><th>UID</th><th>Email</th><th>Balance</th></tr></thead>
+          <tbody id="userTbody"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pending Deposits -->
+    <div class="card" style="margin-top:12px">
+      <b style="color:var(--neon);letter-spacing:.12em">DEPOSIT REQUESTS (pending)</b>
+      <div style="height:10px; overflow:auto">
+        <table>
+          <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Method</th><th>Last4</th><th>Action</th></tr></thead>
+          <tbody id="depTbody"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pending Purchases -->
+    <div class="card" style="margin-top:12px">
+      <b style="color:var(--neon);letter-spacing:.12em">PURCHASE REQUESTS (pending)</b>
+      <div style="height:10px; overflow:auto">
+        <table>
+          <thead><tr><th>ID</th><th>User</th><th>Service</th><th>Price</th><th>Action</th></tr></thead>
+          <tbody id="buyTbody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Manual Notification -->
+    <div class="card" style="margin-top:12px">
+      <b style="color:var(--neon);letter-spacing:.12em">SEND NOTIFICATION</b>
+      <div class="muted">notifications collection</div>
+      <div style="height:10px"></div>
+      <div class="grid">
+        <input id="nUid" placeholder="To UID">
+        <input id="nTitle" placeholder="Title">
+        <textarea id="nBody" placeholder="Message..."></textarea>
+        <button class="btn" id="btnSendNotif" type="button">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="./firebase.js"></script>
+  <script type="module" src="./admin.js"></script>
+</div>
+</body>
+</html>
