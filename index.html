@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PHONE GUARD — Admin Panel</title>
+  <style>
+    :root{ --bg:#05110e; --card:#071c17; --glow:#00ffd5; --text:#b7fff2; --muted:#6dd9c7; --danger:#ff5e5e; }
+    body{ margin:0; font-family: ui-monospace, Menlo, Consolas, monospace; background: radial-gradient(1200px 800px at 20% 10%, #083a2f, var(--bg)); color:var(--text); }
+    .wrap{ max-width:760px; margin:18px auto; padding:14px; }
+    .title{ text-align:center; padding:18px 14px; border-radius:18px; background: rgba(7,28,23,.75); box-shadow: 0 0 0 1px rgba(0,255,213,.15), 0 0 40px rgba(0,255,213,.08); }
+    h1{ margin:0; letter-spacing:8px; color:var(--glow); font-size:34px; }
+    .sub{ margin-top:8px; color:var(--muted); letter-spacing:2px; }
+    .card{ margin-top:14px; padding:16px; border-radius:18px; background: rgba(7,28,23,.75); box-shadow: 0 0 0 1px rgba(0,255,213,.15); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .row > *{ flex:1; min-width:150px; }
+    input, textarea, select{
+      width:100%; box-sizing:border-box; padding:12px 12px; border-radius:14px;
+      border:1px solid rgba(0,255,213,.18); background: rgba(0,0,0,.25); color:var(--text);
+      outline:none;
+    }
+    textarea{ min-height:92px; resize:vertical; }
+    button{
+      padding:12px 14px; border-radius:14px; border:1px solid rgba(0,255,213,.22);
+      background: linear-gradient(90deg, rgba(0,255,213,.25), rgba(0,255,213,.10));
+      color:var(--text); cursor:pointer; font-weight:700; letter-spacing:1px;
+    }
+    button:hover{ filter:brightness(1.08); }
+    .btn-danger{ border-color: rgba(255,94,94,.35); background: rgba(255,94,94,.12); }
+    .btn-primary{ background: linear-gradient(90deg, rgba(0,255,213,.35), rgba(0,255,213,.15)); }
+    .small{ font-size:12px; color:var(--muted); }
+    .status{ margin-top:10px; padding:10px 12px; border-radius:14px; background: rgba(0,0,0,.25); border:1px solid rgba(0,255,213,.12); }
+    .status.err{ border-color: rgba(255,94,94,.35); color:#ffd3d3; }
+    .hr{ height:1px; background: rgba(0,255,213,.12); margin:12px 0; }
+    table{ width:100%; border-collapse:collapse; }
+    th,td{ border-bottom:1px solid rgba(0,255,213,.12); padding:10px 6px; font-size:13px; text-align:left; }
+    .pill{ display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid rgba(0,255,213,.18); color:var(--muted); font-size:12px; }
+    .hidden{ display:none !important; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>PHONE GUARD</h1>
+      <div class="sub">Admin Panel • Balance • Payments • Notifications • Approvals</div>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginCard" class="card">
+      <div class="row" style="align-items:center">
+        <div style="flex:2">
+          <div class="pill">ADMIN LOGIN (Firebase Auth)</div>
+        </div>
+        <div style="flex:1;text-align:right">
+          <button id="btnFillDemo" type="button">Fill Demo</button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <div>
+          <input id="loginEmail" type="email" placeholder="Admin email" autocomplete="email" />
+        </div>
+        <div>
+          <input id="loginPass" type="password" placeholder="Admin password" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button id="btnLogin" class="btn-primary" type="button">LOGIN</button>
+      </div>
+
+      <div id="loginStatus" class="status">Ready.</div>
+      <div class="small" style="margin-top:8px">
+        ✅ Admin হতে হলে Firestore এ <b>admins/{UID}</b> document থাকতে হবে (Document ID = Firebase Auth UID)।
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dash" class="hidden">
+      <div class="card">
+        <div class="row" style="align-items:center">
+          <div style="flex:3">
+            <div class="pill">DASHBOARD</div>
+            <div id="adminInfo" class="status">Admin: -</div>
+          </div>
+          <div style="flex:1;text-align:right">
+            <button id="btnRefresh" type="button">Refresh</button>
+            <button id="btnLogout" class="btn-danger" type="button">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- USER BALANCE -->
+      <div class="card">
+        <div class="pill">USER BALANCE (Add / Set / Check)</div>
+        <div class="hr"></div>
+
+        <div class="row">
+          <input id="uidInput" placeholder="User UID (from Authentication list)" />
+          <input id="amountInput" type="number" placeholder="Amount (e.g. 500)" />
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="btnCheckBalance" type="button">Check</button>
+          <button id="btnAddBalance" class="btn-primary" type="button">Add</button>
+          <button id="btnSetBalance" type="button">Set</button>
+        </div>
+
+        <div id="balanceStatus" class="status">Ready.</div>
+        <div class="small">Firestore path: <b>users/{uid}.balance</b></div>
+      </div>
+
+      <!-- PAYMENT NUMBERS -->
+      <div class="card">
+        <div class="pill">PAYMENT NUMBERS (settings/payment)</div>
+        <div class="hr"></div>
+
+        <div class="row">
+          <input id="bkashInput" placeholder="bKash number" />
+        </div>
+        <div class="row" style="margin-top:10px">
+          <input id="nagadInput" placeholder="Nagad number" />
+        </div>
+        <div class="row" style="margin-top:10px">
+          <input id="rocketInput" placeholder="Rocket number" />
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="btnLoadPayment" type="button">Load</button>
+          <button id="btnSavePayment" class="btn-primary" type="button">Save</button>
+        </div>
+
+        <div id="paymentStatus" class="status">Ready.</div>
+        <div class="small">Firestore path: <b>settings/payment</b></div>
+      </div>
+
+      <!-- SEND NOTIFICATION -->
+      <div class="card">
+        <div class="pill">SEND NOTIFICATION (manual)</div>
+        <div class="hr"></div>
+
+        <div class="row">
+          <input id="notifToUid" placeholder="To UID" />
+        </div>
+        <div class="row" style="margin-top:10px">
+          <textarea id="notifMsg" placeholder="Message..."></textarea>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button id="btnSendNotif" class="btn-primary" type="button">Send</button>
+        </div>
+
+        <div id="notifStatus" class="status">Ready.</div>
+        <div class="small">Writes: <b>notifications</b> collection (auto ID)</div>
+      </div>
+
+      <!-- DEPOSIT REQUESTS -->
+      <div class="card">
+        <div class="pill">PENDING DEPOSIT REQUESTS</div>
+        <div class="hr"></div>
+
+        <div class="small">Collection: <b>depositRequests</b> — status: "pending"</div>
+        <div style="overflow:auto;margin-top:8px">
+          <table>
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>User UID</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>TxID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="depositTbody">
+              <tr><td colspan="6" class="small">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="depositStatus" class="status">Ready.</div>
+      </div>
+
+      <!-- PURCHASE REQUESTS -->
+      <div class="card">
+        <div class="pill">PENDING PURCHASE REQUESTS</div>
+        <div class="hr"></div>
+
+        <div class="small">Collection: <b>purchaseRequests</b> — status: "pending"</div>
+        <div style="overflow:auto;margin-top:8px">
+          <table>
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>User UID</th>
+                <th>Service</th>
+                <th>Cost</th>
+                <th>Phone</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="purchaseTbody">
+              <tr><td colspan="6" class="small">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="purchaseStatus" class="status">Ready.</div>
+      </div>
+
+      <!-- USERS LIST -->
+      <div class="card">
+        <div class="pill">USERS LIST (latest 50)</div>
+        <div class="hr"></div>
+
+        <div style="overflow:auto;margin-top:8px">
+          <table>
+            <thead>
+              <tr>
+                <th>UID</th>
+                <th>Email</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody">
+              <tr><td colspan="5" class="small">No data loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="usersStatus" class="status">Ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./firebase.js"></script>
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>
